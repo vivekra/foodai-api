@@ -19,7 +19,7 @@ export const register = catchAsync(async (req: Request, res: Response) => {
 
   // Cost factor 12 per security spec
   const hashedPassword = await bcrypt.hash(password, 12);
-  const userRole = role === 'RESTAURANT_OWNER' ? 'RESTAURANT_OWNER' : 'CUSTOMER';
+  const userRole = role === 'SUPER_ADMIN' || role === 'RESTAURANT_OWNER' ? role : 'CUSTOMER';
 
   const user = await prisma.user.create({
     data: {

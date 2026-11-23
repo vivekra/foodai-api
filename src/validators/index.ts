@@ -19,6 +19,7 @@ export const RegisterSchema = z.object({
       'Password must contain uppercase, lowercase, number, and special character'
     ),
   phone: UKPhoneSchema.optional(),
+  role: z.enum(['CUSTOMER', 'RESTAURANT_OWNER', 'SUPER_ADMIN']).optional(),
 });
 
 export const LoginSchema = z.object({
