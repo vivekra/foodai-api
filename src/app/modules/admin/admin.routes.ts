@@ -9,9 +9,13 @@ import {
   updateUserRole,
 } from './admin.controller.js';
 import { validateBody } from '../../middleware/ValidateRequest.js';
+import { requireSuperAdmin } from '../../middleware/Auth.js';
 import { UpdatePricingSchema } from '../../../validators/index.js';
 
 const router = Router();
+
+// Strictly enforce Super Admin authentication across all admin endpoints
+router.use(requireSuperAdmin);
 
 router.get('/stats', getStats);
 router.get('/restaurants', getAdminRestaurants);

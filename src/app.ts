@@ -3,6 +3,7 @@ import helmet from 'helmet';
 import cors from 'cors';
 import { globalLimiter, speedLimiter } from './app/middleware/RateLimit.js';
 import { requestLogger } from './app/middleware/Logger.js';
+import { authenticateSession } from './app/middleware/Auth.js';
 import { globalErrorHandler } from './app/middleware/GlobalErrorHandler.js';
 import { router } from './app/routes/index.js';
 
@@ -66,6 +67,9 @@ export function createApp() {
 
   // Request logging
   app.use(requestLogger);
+
+  // Authenticate user session from Bearer token / header
+  app.use(authenticateSession);
 
   // API routes
   app.use('/api/v1', router);
