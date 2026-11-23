@@ -13,20 +13,10 @@ export function createApp() {
   // Trust proxy (Vercel, Koyeb, Cloudflare)
   app.set('trust proxy', 1);
 
-  // Security headers via helmet
+  // Security headers via helmet (CSP disabled on REST API endpoints to avoid blocking client UI apps)
   app.use(
     helmet({
-      contentSecurityPolicy: {
-        directives: {
-          defaultSrc: ["'self'"],
-          scriptSrc: ["'self'"],
-          styleSrc: ["'self'", "'unsafe-inline'"],
-          imgSrc: ["'self'", 'data:', 'https:'],
-          connectSrc: ["'self'"],
-          frameSrc: ["'none'"],
-          objectSrc: ["'none'"],
-        },
-      },
+      contentSecurityPolicy: false,
       crossOriginEmbedderPolicy: false,
       hsts: {
         maxAge: 31536000,
@@ -36,24 +26,41 @@ export function createApp() {
     })
   );
 
-  // CORS — strict allowlist only
-  const allowedOrigins = (process.env['CORS_ORIGINS'] ?? '')
+  // CORS — support dqserv.com platform domains and custom CORS_ORIGINS
+  const envOrigins = (process.env['CORS_ORIGINS'] ?? '')
     .split(',')
     .map((o) => o.trim())
     .filter(Boolean);
 
+  const defaultPlatformOrigins = [
+    'https://merchants.dqserv.com',
+    'https://kitchen.dqserv.com',
+    'https://foodai.dqserv.com',
+    'https://dqserv.com',
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'http://localhost:3002',
+    'http://localhost:3003',
+  ];
+
   app.use(
     cors({
       origin: (origin, callback) => {
-        if (!origin || allowedOrigins.includes(origin)) {
+        if (!origin) return callback(null, true);
+        if (
+          envOrigins.includes(origin) ||
+          defaultPlatformOrigins.includes(origin) ||
+          origin.endsWith('.dqserv.com') ||
+          origin.startsWith('http://localhost:')
+        ) {
           callback(null, true);
         } else {
           callback(new Error(`CORS: origin ${origin} not allowed`));
         }
       },
       credentials: true,
-      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'x-user-id'],
+      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'x-user-id', 'x-session-token'],
     })
   );
 
